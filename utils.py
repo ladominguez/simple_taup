@@ -41,8 +41,8 @@ def plot_model(max_dist = 100):
     ax.invert_yaxis()
     for depth in depths:
         ax.axhline(depth, color='red')
-    
     return fig
+
 def plot_solution(fig, depth, station_distance):
     ax = fig.axes[0]
     theta = solve_theta(station_distance, depth)
@@ -51,8 +51,4 @@ def plot_solution(fig, depth, station_distance):
     zi = np.append(np.flip(np.cumsum(get_depths(depth))),0)
     ax.plot(xi, zi, color='blue')
     ax.scatter(station_distance, 0, color='blue')
-    #ax.text(xi, depth, '({:.2f}, {:.2f})'.format(xi, depth))
-    #ax.text(0, depth, 'theta = {:.2f}'.format(theta))
-    #ax.text(0, depth - 1, 'xi = {:.2f}'.format(xi))
-    #ax.text(0, depth - 2, 'distance = {:.2f}'.format(distances[-1]))
     return fig
