@@ -1,8 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
-thickness = np.array([4, 5, 5, 5, 5, 9, 17, 17, np.Inf])
-velocities = np.array([5.3, 5.6, 6.2, 6.9, 7.4, 7.7, 7.9, 8.1, 8.3 ])
+thickness, velocities = np.loadtxt('model.txt', unpack=True, skiprows=1)
 depths = np.cumsum(thickness)
 
 sind = lambda degrees: np.sin(np.deg2rad(degrees))
@@ -31,19 +30,34 @@ def solve_theta(station_distance, depth):
     return thetas[np.argmin(np.abs(distances - station_distance))]
 
 def plot_model(max_dist = 100):
-    fig = plt.figure(figsize=(4,10))
-    ax = fig.add_subplot(111)
-    ax.set_title('Model')
-    ax.set_xlabel('Distance [m]')
-    ax.set_ylabel('Depth [m]')
-    ax.set_xlim([0, max_dist])
-    ax.set_ylim([0, np.sum(thickness[thickness != np.Inf])+ 5])
-    ax.invert_yaxis()
+    fig, (ax1, ax2) = plt.subplots(1,2, figsize=(8,10))
+    
+    ax1.set_title('Model')
+    ax1.set_xlabel('Distance [km]')
+    ax1.set_ylabel('Depth [km]')
+    ax1.set_xlim([0, max_dist])
+    ax1.set_ylim([0, np.sum(thickness[thickness != np.Inf])+ 5])
+    ax1.invert_yaxis()
+    # add another subplot to the right
+
     for depth in depths:
-        ax.axhline(depth, color='red')
-    return fig
+        ax1.axhline(depth, color='red')
+    # get y limits of ax1
+    ylim = ax1.get_ylim()    
+    ax2.step(np.append(velocities,velocities[-1]), 
+            np.append(np.append(0,np.delete(depths, -1)),ylim[0]), color='green')
+    ax2.invert_yaxis()
+    ax2.set_title('P- wave velocity')
+    ax2.set_xlabel('Velocity [km/s]')
+    ax2.set_ylabel('Depth [km]')
+    ax2.set_ylim(ylim)
+    # add grid with dashed lines
+    ax2.grid(linestyle='--')
+
+    return fig, (ax1, ax2)
 
 def plot_solution(fig, depth, station_distance):
+    print("depths: ", depths)
     ax = fig.axes[0]
     theta = solve_theta(station_distance, depth)
     _, distances = estimate_distances(theta, depth)
