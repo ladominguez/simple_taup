@@ -15,14 +15,16 @@ def estimate_thetas(depth, takeoff):
     p = ray_parameter(depth, takeoff)
     Vup = velocities[np.where(depths < depth)[0]]
     thetas = asind(p*Vup)
-    thetas = np.append(takeoff, thetas)
+    thetas = np.append(thetas, takeoff)
     return thetas
 
 def estimate_distances(takeoff, depth):
+    '''Returns the distance from the station to the epicenter, the distances
+    from the station to the interface and the takeoff angle at the interface.
+    '''
     thetas = estimate_thetas(depth, takeoff)
-    xi =  get_depths(depth)*tand(thetas)
-    xi = np.cumsum(xi)
-    return xi[-1], xi
+    xi = np.cumsum(np.flip(get_depths(depth)*tand(thetas)))
+    return xi[-1], xi, thetas[0]
 
 def solve_theta(station_distance, depth):
     thetas = np.linspace(0,70, 201)
@@ -57,10 +59,11 @@ def plot_model(max_dist = 100):
     return fig, (ax1, ax2)
 
 def plot_solution(fig, depth, station_distance):
-    print("depths: ", depths)
     ax = fig.axes[0]
     theta = solve_theta(station_distance, depth)
-    _, distances = estimate_distances(theta, depth)
+    _, distances, th_incidence = estimate_distances(theta, depth)
+    print('Takeoff angle: {:.2f}°'.format(theta))
+    print('Incidence angle: {:.2f}°'.format(th_incidence))
     xi = np.append(0,distances)
     zi = np.append(np.flip(np.cumsum(get_depths(depth))),0)
     ax.plot(xi, zi, color='blue')
